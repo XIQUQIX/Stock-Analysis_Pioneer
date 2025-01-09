@@ -22,19 +22,19 @@ Ensure you have the following installed:
 - Required libraries:
   - `yfinance`
   - `pandas`
-  - `openpyxl`
   - `numpy`
 
 You can install the required libraries using:
 ```bash
 pip install yfinance
+pip install pandas
 ```
 
 ## Usage
 
 ### 1. Data Preparation
 - **Input Files**:
-  - `stock_code_1.txt`: A text file containing stock codes, one per line.
+  - `filtered_stock_codes.txt`: A text file containing stock codes, one per line.
   - `stock_name.txt`: A text file mapping stock codes to stock names.
 
 ### 2. Running the Analysis
