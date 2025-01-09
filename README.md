@@ -27,7 +27,7 @@ Ensure you have the following installed:
 
 You can install the required libraries using:
 ```bash
-pip install yfinance pandas openpyxl numpy
+pip install yfinance
 ```
 
 ## Usage
