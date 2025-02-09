@@ -1,4 +1,4 @@
-# 缅A golden_cross for KDJ and MACD
+# 沪深股市 golden_cross for KDJ and MACD
 # Daily Stock Analysis with Golden Cross Detection
 
 ## Overview
