@@ -21,12 +21,14 @@ Ensure you have the following installed:
 - Python 3.8+
 - Required libraries:
   - `yfinance`
+  - `akshare`
   - `pandas`
   - `numpy`
 
 You can install the required libraries using:
 ```bash
 pip install yfinance
+pip install akshare
 pip install pandas
 ```
 
