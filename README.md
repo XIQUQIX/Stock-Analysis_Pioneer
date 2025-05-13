@@ -1,18 +1,22 @@
-# 沪深股市 golden_cross for KDJ and MACD
-# Daily Stock Analysis with Golden Cross Detection
+# 沪深股市
+# Daily Stock Analysis with Golden Cross Detection of KDJ and MACD
 
 ## Overview
-This project is designed to analyze stock data, identify golden cross patterns, and filter stocks that experienced a MACD daily golden cross within the past week. The analysis outputs an Excel file containing:
+This project is designed to analyze stock data, identify golden cross patterns, and filter stocks that experienced a MACD month golden cross and the DIF is above 0. The analysis outputs an Excel file containing:
 - Stock code
 - Stock name
 - Dates of golden crosses in the past week
 - Total number of stocks with golden crosses
 
-The project is implemented in Python and utilizes libraries like `yfinance`, `pandas`, and `openpyxl`.
+And the related png file for user to load into their stock softwares
+- each picture is grouped by at most 50 stock codes
+
+The project is implemented in Python and utilizes libraries including `akshare`, `pandas`, `matplot` and `openpyxl`.
+Lib `yfinance` is no longer used due to its unstability.
 
 ## Features
-1. **Golden Cross Detection**: Identify weekly golden cross patterns in stock data.
-2. **MACD Daily Analysis**: Filter stocks that experienced a MACD daily golden cross in the past week.
+1. **Golden Cross Detection**: Identify daily and weekly golden cross patterns in stock data.
+2. **MACD Monthly Analysis**: Filter stocks that experienced a MACD monthly golden cross in current month and its DIF is above 0.
 3. **Excel Report Generation**: Output the results to an Excel file with a summary of the total number of stocks meeting the criteria.
 4. **Error Handling for Data Retrieval**: Automatically retries data download if an error occurs.
 
@@ -20,14 +24,14 @@ The project is implemented in Python and utilizes libraries like `yfinance`, `pa
 Ensure you have the following installed:
 - Python 3.8+
 - Required libraries:
-  - `yfinance`
+  - `matplot`
   - `akshare`
   - `pandas`
   - `numpy`
 
 You can install the required libraries using:
 ```bash
-pip install yfinance
+pip install matplot
 pip install akshare
 pip install pandas
 ```
@@ -36,7 +40,7 @@ pip install pandas
 
 ### 1. Data Preparation
 - **Input Files**:
-  - `filtered_stock_codes.txt`: A text file containing stock codes, one per line.
+  - `stock_codes.txt`: A text file containing stock codes, one per line.
   - `stock_name.txt`: A text file mapping stock codes to stock names.
 
 ### 2. Running the Analysis
@@ -45,15 +49,13 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 #### Steps:
 1. Convert the Jupyter Notebook to a Python script if necessary:
    ```bash
-   jupyter nbconvert --to script test.ipynb
+   jupyter nbconvert --to script kdj_金叉+死叉_ak.ipynb
+   jupyter nbconvert --to script kdj_分类筛选.ipynb
    ```
 2. Execute the script:
-   ```bash
-   python test.py
-   ```
 
 ### 3. Output
-- The script generates an Excel file named `golden_cross_report.xlsx`, containing the following columns:
+- The script generates an Excel file named `golden_cross_report.xlsx` in output folder, containing the following columns:
   - **Stock Code**: The six-digit stock code.
   - **Stock Name**: The corresponding name of the stock.
   - **Golden Cross Dates**: Dates within the past week when a golden cross occurred.
@@ -62,12 +64,9 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 ## Key Functions
 ### `get_recent_golden_cross_dates(stock_code)`
 Retrieves golden cross dates for a given stock.
-- Downloads historical stock data using `yfinance`.
+- Downloads historical stock data using `akshare`.
 - Calculates KDJ and MACD indicators.
 - Filters golden cross dates within the last week.
-
-### `filter_macd_golden_cross_in_last_week(data, all_golden_cross_dates)`
-Filters stocks from `all_golden_cross_dates` that experienced a MACD daily golden cross in the last week.
 
 ### `generate_excel_report(data, filename)`
 Generates the Excel report summarizing the analysis.
@@ -80,14 +79,10 @@ Generates the Excel report summarizing the analysis.
 To schedule the script to run every weekday at 8:00 AM:
 1. Open Windows Task Scheduler.
 2. Create a new task:
-   - Set the trigger to daily at 8:00 AM.
-   - Set the action to run the Python script (`test.py`).
+   - Set the trigger to daily at 4:00 PM.
+   - Set the action to run the Python script (`kdj_金叉+死叉_ak.py`).
    - Ensure the correct Python interpreter is used.
 3. Save and enable the task.
-
-## Troubleshooting
-- **Data Download Issues**: If a stock fails to download, the script retries automatically.
-- **Empty Results**: Ensure the stock codes in `stock_code_1.txt` are valid and active.
 
 ## License
 This project is licensed under the MIT License. See `LICENSE` for details.
