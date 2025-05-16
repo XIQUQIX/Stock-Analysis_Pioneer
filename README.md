@@ -64,12 +64,12 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 ## Key Functions
 ### `get_recent_golden_cross_dates(stock_code)`
 Retrieves golden cross dates for a given stock.
-- Downloads historical stock data using `akshare`.
-- Calculates KDJ and MACD indicators.
+- Downloads historical stock data using `akshare`, starting from 2015.01.01 and ends by today.
+- Calculates the daily KDJ.
 - Filters golden cross dates within the last week.
 
-### `generate_excel_report(data, filename)`
-Generates the Excel report summarizing the analysis.
+### TO DO
+introduce the calculate.py and common.py
 
 ## Error Handling
 - **Data Retrieval**: Implements retry logic for downloading stock data using `yfinance` to handle occasional `JSONDecodeError` or other network issues.
