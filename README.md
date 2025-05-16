@@ -68,7 +68,7 @@ Retrieves golden cross dates for a given stock.
 - Calculates the daily KDJ.
 - Filters golden cross dates within the last week.
 
-### TO DO
+# TO DO
 introduce the calculate.py and common.py
 
 ## Error Handling
