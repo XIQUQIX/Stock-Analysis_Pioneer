@@ -4,14 +4,17 @@
 ## Overview
 This project is designed to analyze stock data, identify golden cross patterns, and filter stocks that experienced a MACD month golden cross and the DIF is above 0. 
 
-The analysis is outputed in `output` folder. Ecah folder includes an Excel file containing:
+The analysis is outputed in `output` folder. Ecah folder includes:
+
+an Excel file:
 - Stock code
 - Stock name
 - Dates of golden crosses in the past week
 - Total number of stocks with golden crosses
 
-And the related png files for user to load into their stock softwares
+And the related png files:
 - each picture is grouped by at most 50 stock codes
+- for user to load into their stock softwares
 
 The project is implemented in Python and utilizes libraries including `akshare`, `pandas`, `matplot` and `openpyxl`.
 Lib `yfinance` is no longer used due to its unstability.
