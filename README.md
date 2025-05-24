@@ -52,7 +52,10 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
    jupyter nbconvert --to script kdj_整合.ipynb
    jupyter nbconvert --to script kdj_分类筛选.ipynb
    ```
-2. Execute the script:
+
+   Or, you could use the export function in Vscode to get a py file from `kdj_整合.ipynb`.
+   
+3. Execute the script.
 
 ### 3. Output
 - The script generates an Excel file named `golden_cross_report.xlsx` in output folder, containing the following columns:
