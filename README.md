@@ -40,16 +40,15 @@ pip install pandas
 
 ### 1. Data Preparation
 - **Input Files**:
-  - `stock_codes.txt`: A text file containing stock codes, one per line.
-  - `stock_name.txt`: A text file mapping stock codes to stock names.
+  - Every required file is stored in `txt_lib` folder.
 
 ### 2. Running the Analysis
-The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Windows Task Scheduler). The main script to execute is `test.ipynb` or its converted Python script.
+The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Windows Task Scheduler). The main script to execute is `kdj_整合.ipynb` or its converted Python script.
 
 #### Steps:
 1. Convert the Jupyter Notebook to a Python script if necessary:
    ```bash
-   jupyter nbconvert --to script kdj_金叉+死叉_ak.ipynb
+   jupyter nbconvert --to script kdj_整合.ipynb
    jupyter nbconvert --to script kdj_分类筛选.ipynb
    ```
 2. Execute the script:
@@ -68,11 +67,8 @@ Retrieves golden cross dates for a given stock.
 - Calculates the daily KDJ.
 - Filters golden cross dates within the last week.
 
-# TO DO
-introduce the calculate.py and common.py
-
 ## Error Handling
-- **Data Retrieval**: Implements retry logic for downloading stock data using `yfinance` to handle occasional `JSONDecodeError` or other network issues.
+- **Data Retrieval**: Implements retry logic for downloading stock data using `akshare` to handle occasional `JSONDecodeError` or other network issues.
 - **Fallback Values**: Ensures the analysis continues even if some stocks have incomplete data.
 
 ## Scheduling with Windows Task Scheduler
