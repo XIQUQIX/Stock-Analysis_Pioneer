@@ -6,7 +6,7 @@ This project is designed to analyze stock data, identify golden cross patterns, 
 
 The analysis is outputed in `output` folder. Ecah folder includes:
 
-an Excel file:
+An Excel file:
 - Stock code
 - Stock name
 - Dates of golden crosses in the past week
