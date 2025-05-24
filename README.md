@@ -41,6 +41,7 @@ pip install pandas
 ### 1. Data Preparation
 - **Input Files**:
   - Every required file is stored in `txt_lib` folder.
+    - Yet, the stock name is not updated and some may even have been delisted. Please check out and you could update that by editing the stock_name.txt. 
 
 ### 2. Running the Analysis
 The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Windows Task Scheduler). The main script to execute is `kdj_整合.ipynb` or its converted Python script.
