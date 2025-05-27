@@ -71,18 +71,27 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 
 ## Key Functions
 ### Function in `calculate.py`
-#### KDJ class
+- KDJ class
 `calculate_kdj(df: DataFrame, n=9)`
-- Calculates the daily KDJ.
+  - Calculates the daily KDJ.
 
 `find_kdj_golden_cross(df: DataFrame)`
-- Calculate golden cross, death cross and  rise/ fall.
+  - Calculate golden cross, death cross and  rise/ fall.
 
 `get_recent_golden_cross_dates(stock_code)`
-Retrieves golden cross dates for a given stock.
-- Downloads historical stock data using `akshare`, starting from 2015.01.01 and ends by today.
-- Calculates the daily KDJ.
-- Filters golden cross dates within the last week.
+  - Retrieves golden cross dates of a given stock and the date is within this week.
+
+- MACD class
+`calculate_macd(df: DataFrame, short=12, long=26, signal=9)`
+  - Calculates the daily MACD.
+
+- Bol class
+
+
+- Mix class
+  - functions within this class are mixture usage of upper classes, which are highly customized
+
+### Function in common.py
 
 ## Error Handling
 - **Data Retrieval**: Implements retry logic for downloading stock data using `akshare` to handle occasional `JSONDecodeError` or other network issues.
