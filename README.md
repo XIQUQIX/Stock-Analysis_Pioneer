@@ -72,18 +72,17 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 ## Key Functions
 ### Function in `calculate.py`
 - KDJ class
-
-`calculate_kdj(df: DataFrame, n=9)`
+  - `calculate_kdj(df: DataFrame, n=9)`
   - Calculates the daily KDJ.
 
-`find_kdj_golden_cross(df: DataFrame)`
+  - `find_kdj_golden_cross(df: DataFrame)`
   - Calculate golden cross, death cross and  rise/ fall.
 
-`get_recent_golden_cross_dates(stock_code)`
+  - `get_recent_golden_cross_dates(stock_code)`
   - Retrieves golden cross dates of a given stock and the date is within this week.
 
 - MACD class
-`calculate_macd(df: DataFrame, short=12, long=26, signal=9)`
+  - `calculate_macd(df: DataFrame, short=12, long=26, signal=9)`
   - Calculates the daily MACD.
 
 - Bol class
