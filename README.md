@@ -2,7 +2,9 @@
 # Daily Stock Analysis with Golden Cross Detection of KDJ and MACD
 
 ## Overview
-This project is designed to analyze stock data, identify golden cross patterns, and filter stocks that experienced a MACD month golden cross and the DIF is above 0. 
+This project is designed to analyze stock data, identify golden cross patterns, MACD data, K line type, etc.
+
+Further checks are made to filter stocks in KDJ daily golden cross and KDJ daily death to operation 1.1 and operation 2 for final manual check.
 
 The analysis is outputed in `output` folder. Ecah folder includes:
 
@@ -63,33 +65,45 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 3. Execute the script.
 
 ### 3. Output
-- The script generates an Excel file named `golden_cross_report.xlsx` in output folder, containing the following columns:
-  - **Stock Code**: The six-digit stock code.
-  - **Stock Name**: The corresponding name of the stock.
-  - **Golden Cross Dates**: Dates within the past week when a golden cross occurred.
-  - **Total Count**: The total number of stocks meeting the criteria, displayed at the top of the sheet.
+- The script generates an `output` folder:
+  - KDJ日金
+  - KDJ日死
+  - 操作1.1
+  - 操作2
+  - KDJ8
+  - death_output
+  - golden_output
+  - month_macd
 
-## Key Functions
+
+## Some Core Functions
 ### Function in `calculate.py`
 - KDJ class
   - `calculate_kdj(df: DataFrame, n=9)`
-  - Calculates the daily KDJ.
+    - Calculates the daily KDJ.
+    - window = n = 9 is set according to the normal calculation
 
-  - `find_kdj_golden_cross(df: DataFrame)`
-  - Calculate golden cross, death cross and  rise/ fall.
+  - `find_kdj_golden_cross`
+    - Calculate golden cross, death cross and  rise/ fall.
 
   - `get_recent_golden_cross_dates(stock_code)`
-  - Retrieves golden cross dates of a given stock and the date is within this week.
+    - Retrieves golden cross dates of a given stock and the date is within this week.
 
 - MACD class
   - `calculate_macd(df: DataFrame, short=12, long=26, signal=9)`
-  - Calculates the daily MACD.
+    - Calculates the daily MACD.
+    - short=12, long=26, signal=9 are all set according to the normal calculation
 
 - Bol class
+  - `calculate_bollinger_bands`
+    -   calculate the exacat upper, mid and lower Bollinger band
+    -   the lower band is ￥0.03 upper due to special needs 
 
 
 - Mix class
   - functions within this class are mixture usage of upper classes, which are highly customized
+  - `get_k_line_type`
+    - determine today's K line type (negative/ positive)
 
 ### Function in common.py
 
