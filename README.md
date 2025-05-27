@@ -70,7 +70,15 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
   - **Total Count**: The total number of stocks meeting the criteria, displayed at the top of the sheet.
 
 ## Key Functions
-### `get_recent_golden_cross_dates(stock_code)`
+### Function in `calculate.py`
+#### KDJ class
+`calculate_kdj(df: DataFrame, n=9)`
+- Calculates the daily KDJ.
+
+`find_kdj_golden_cross(df: DataFrame)`
+- Calculate golden cross, death cross and  rise/ fall.
+
+`get_recent_golden_cross_dates(stock_code)`
 Retrieves golden cross dates for a given stock.
 - Downloads historical stock data using `akshare`, starting from 2015.01.01 and ends by today.
 - Calculates the daily KDJ.
