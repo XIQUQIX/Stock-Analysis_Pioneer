@@ -72,6 +72,7 @@ The analysis script can be scheduled to run daily at 8:00 AM (e.g., using Window
 ## Key Functions
 ### Function in `calculate.py`
 - KDJ class
+
 `calculate_kdj(df: DataFrame, n=9)`
   - Calculates the daily KDJ.
 
