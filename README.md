@@ -26,6 +26,8 @@ Lib `yfinance` is no longer used due to its unstability.
 2. **MACD Monthly Analysis**: Filter stocks that experienced a MACD monthly golden cross in current month and its DIF is above 0.
 3. **Excel Report Generation**: Output the results to an Excel file with a summary of the total number of stocks meeting the criteria.
 4. **Error Handling for Data Retrieval**: Automatically retries data download if an error occurs.
+5. **Batch handling**: Take 100 stock code as a batch. Once one batch finishes, it will be printed on screen.
+6. **Garbage Collection**: Within every batch, memory used will be printed on screeen.
 
 ## Prerequisites
 Ensure you have the following installed:
