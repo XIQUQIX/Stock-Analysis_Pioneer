@@ -238,8 +238,8 @@ class Final_process:
                 return res
 
             # 当日阴线 + 周kdj金叉小于三周
-            elif mode == "阴线_周kdj":
-                res = calculate.Mix.get_op1_1_cond3(stock_code)
+            elif mode == "阴线_2cond":
+                res = calculate.Mix.get_op1_1_2cond(stock_code)
                 return res
 
             # # 一周内将分红股票 + 收益率降序排列

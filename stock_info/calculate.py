@@ -326,27 +326,69 @@ class KDJ:
 
     @staticmethod
     def get_near_golden_cross(stock_code: str):
-        """接近金叉的股票 + DIF > 0 + MACD > 0"""
-        # df = common.Download.download_with_retry(stock_code)
+        # """接近金叉的股票 + DIF > 0 + MACD > 0"""
 
+        # data = GLOBAL_STOCK_DATA
+        # df = pd.DataFrame(data[stock_code])
+
+        # df = KDJ.calculate_kdj(df)
+        # df = MACD.calculate_macd(df)
+
+        # condition1 = (-df["K"].iloc[-2] + df["D"].iloc[-2]) - (
+        #     -df["K"].iloc[-1] + df["D"].iloc[-1]
+        # ) > 3  # 昨日KD差值大于今日
+        # condition2 = df["K"].iloc[-1] < df["D"].iloc[-1]  # 今日K < D
+        # condition3 = (df["D"].iloc[-1] - df["J"].iloc[-1]) < 12  # 今日D J 差值
+        # condition4 = (df["J"].iloc[-1] - df["J"].iloc[-2]) > 15  # 今昨 J 差值
+
+        # condition5 = (df["MACD_hist"].iloc[-1] > 0) and (
+        #     df["DIF"].iloc[-1] > 0
+        # )  # 今日DIF > 0 + MACD > 0
+
+        # if (condition1 and condition2 and (condition3 or condition4)) and condition5:
+        #     return stock_code
+        """
+        1. (今日收盘价 - 中轨) / 收盘价 < 4% or (今日收盘价 - 下轨) / 收盘价 < 4%
+
+        2. J今日- J昨日 > 0 + 第一次
+
+        3. 周bol 中轨 本周 >= 上周
+
+        4. DIF > 0 + MACD > 0
+        """
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
+
+        week_df = Reshape_data.get_week_df(df)
+        bol_df = Bol.calculate_bollinger_bands(df)
 
         df = KDJ.calculate_kdj(df)
         df = MACD.calculate_macd(df)
 
-        condition1 = (-df["K"].iloc[-2] + df["D"].iloc[-2]) - (
-            -df["K"].iloc[-1] + df["D"].iloc[-1]
-        ) > 3  # 昨日KD差值大于今日
-        condition2 = df["K"].iloc[-1] < df["D"].iloc[-1]  # 今日K < D
-        condition3 = (df["D"].iloc[-1] - df["J"].iloc[-1]) < 12  # 今日D J 差值
-        condition4 = (df["J"].iloc[-1] - df["J"].iloc[-2]) > 15  # 今昨 J 差值
+        today_close = df["close"].iloc[-1]
+        today_mid = bol_df["BOLL_MID"].iloc[-1]
+        today_low = bol_df["BOLL_LOWER"].iloc[-1]
 
-        condition5 = (df["MACD_hist"].iloc[-1] > 0) and (
-            df["DIF"].iloc[-1] > 0
-        )  # 今日DIF > 0 + MACD > 0
+        # (今日收盘价 - 中轨) / 收盘价 < 4% or (今日收盘价 - 下轨) / 收盘价 < 4%
+        condition1 = ((abs(today_close - today_mid) / today_close) < 0.04) or (
+            (abs(today_close - today_low) / today_close) < 0.04
+        )
 
-        if (condition1 and condition2 and (condition3 or condition4)) and condition5:
+        # J今日 > J昨日  + 第一次
+        condition2 = (df["J"].iloc[-1] > df["J"].iloc[-2]) and (
+            df["J"].iloc[-3] > df["J"].iloc[-2]
+        )
+
+        # 周bol 中轨 本周 >= 上周
+        week_bol_df = Bol.calculate_bollinger_bands(week_df)
+        condition3 = round(week_bol_df["BOLL_MID"].iloc[-1], 3) >= round(
+            week_bol_df["BOLL_MID"].iloc[-2], 3
+        )# 近似到小数点后三位
+
+        # 今日DIF > 0 + MACD > 0
+        condition4 = (df["MACD_hist"].iloc[-1] > 0) and (df["DIF"].iloc[-1] > 0)
+        
+        if condition1 and condition2 and condition3 and condition4:
             return stock_code
 
     @staticmethod
@@ -503,7 +545,7 @@ class Mix:
 
     @staticmethod
     def check_golden_cross_condition(df: DataFrame):
-        """最近一次金叉发生在三周，且金叉发生后，不能发生死叉"""
+        """最近一次金叉发生在两周,且金叉发生后,不能发生死叉"""
         week_df = KDJ.calculate_weekly_kdj(df)
         week_cross = KDJ.find_kdj_golden_cross(week_df)
 
@@ -514,8 +556,8 @@ class Mix:
         latest_golden_cross_index = golden_cross_indices[-1]
 
         # 检查是否在最后三行内
-        if latest_golden_cross_index not in week_cross.index[-3:]:
-            return False  # 最近的 金叉 不在最后三行
+        if latest_golden_cross_index not in week_cross.index[-2:]:
+            return False  # 最近的 金叉 不在最后两行
 
         # 检查 金叉 之后是否有 死叉
         subsequent_rows = week_cross.loc[latest_golden_cross_index:]
@@ -563,48 +605,82 @@ class Mix:
         return False
 
     @staticmethod
-    def get_op1_1_cond3(stock_code: str):
-        """
-        判断是否今日是第一根阴线 + 周kdj金叉三周内
-        + 昨日阳线碰Bol上轨 + 今日最高价小于昨日最高价
-        """
-        # df = common.Download.download_with_retry(stock_code)
+    def get_op1_1_2cond(stock_code: str):
+        # """
+        # 判断是否今日是第一根阴线 + 周kdj金叉三周内
+        # + 昨日阳线碰Bol上轨 + 今日最高价小于昨日最高价
+        # """
+        # # df = common.Download.download_with_retry(stock_code)
 
+        # data = GLOBAL_STOCK_DATA
+        # df = pd.DataFrame(data[stock_code])
+
+        # tod_row = df.iloc[-1]  # 今日数据
+        # yest_row = df.iloc[-2]  # 昨日数据
+
+        # condition1 = Mix.get_1st_neg_k_line(tod_row, yest_row)  # 今日是第一根阴线
+        # condition2 = Mix.check_golden_cross_condition(df)  # 周kdj金叉三周内
+
+        # # 预处理数据
+        # df = Bol.calculate_bollinger_bands(df)
+        # yest_date = (datetime.now() - timedelta(days=1)).strftime(
+        #     "%Y-%m-%d"
+        # )  # yesterday
+        # touch_records = Bol.detect_bollinger_touch(df)  # 获取碰轨事件
+        # last_touch_date = touch_records[-1][0]  # 最近一次碰轨日期
+        # last_touch_type = touch_records[-1][1]  # 本回轨道
+        # bef_last_touch_type = touch_records[-2][1]  # 上回轨道
+        # bef_last_touch_date = touch_records[-2][0]  # 最近二次碰轨日期
+
+        # condition3_1 = (last_touch_date == yest_date) and (
+        #     last_touch_type == "上轨"
+        # )  # 倒数第一次碰轨情况 (今日未碰轨)
+        # condition3_2 = (bef_last_touch_date == yest_date) and (
+        #     bef_last_touch_type == "上轨"
+        # )  # 倒数第二次碰轨情况 (今日也碰轨)
+
+        # condition3 = condition3_1 or condition3_2  # 昨日/今日 碰上轨
+
+        # tod_high = tod_row["high"]  # 今日最高价
+        # yest_high = yest_row["high"]  # 昨日最高价
+
+        # condition4 = tod_high < yest_high  # 今日最高价小于昨日最高价
+
+        # if condition1 and condition2 and condition3 and condition4:
+        #     return stock_code
+        """
+        今日是阴线 + abs(最低价 - 中轨) / 收盘价 < 3% or abs(最低价 -下轨) / 收盘价 < 3%
+        abs(上轨 - 收盘价) / 收盘价 > 10%  + 周kdj金叉2周内
+        两者符合其一
+        """
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
 
         tod_row = df.iloc[-1]  # 今日数据
-        yest_row = df.iloc[-2]  # 昨日数据
+        tod_type = Mix.get_k_line_type(tod_row)
 
-        condition1 = Mix.get_1st_neg_k_line(tod_row, yest_row)  # 今日是第一根阴线
-        condition2 = Mix.check_golden_cross_condition(df)  # 周kdj金叉三周内
+        today_low = df["low"].iloc[-1]
+        today_close = df["close"].iloc[-1]
+        bol_df = Bol.calculate_bollinger_bands(df)
+        bol_upper = round(bol_df["BOLL_UPPER"].iloc[-1], 3)
+        bol_mid = round(bol_df["BOLL_MID"].iloc[-1],3)
+        bol_low = round(bol_df["BOLL_LOWER"].iloc[-1], 3)
 
-        # 预处理数据
-        df = Bol.calculate_bollinger_bands(df)
-        yest_date = (datetime.now() - timedelta(days=1)).strftime(
-            "%Y-%m-%d"
-        )  # yesterday
-        touch_records = Bol.detect_bollinger_touch(df)  # 获取碰轨事件
-        last_touch_date = touch_records[-1][0]  # 最近一次碰轨日期
-        last_touch_type = touch_records[-1][1]  # 本回轨道
-        bef_last_touch_type = touch_records[-2][1]  # 上回轨道
-        bef_last_touch_date = touch_records[-2][0]  # 最近二次碰轨日期
+        # 条件1
+        condition1_1 = (tod_type == "阴线")
 
-        condition3_1 = (last_touch_date == yest_date) and (
-            last_touch_type == "上轨"
-        )  # 倒数第一次碰轨情况 (今日未碰轨)
-        condition3_2 = (bef_last_touch_date == yest_date) and (
-            bef_last_touch_type == "上轨"
-        )  # 倒数第二次碰轨情况 (今日也碰轨)
+        condition1_2 = (abs(today_low - bol_mid) / today_close < 0.03) or (
+            abs(today_low - bol_low) / today_close < 0.03
+        )
 
-        condition3 = condition3_1 or condition3_2  # 昨日/今日 碰上轨
+        condition1 = (condition1_1 and condition1_2)
 
-        tod_high = tod_row["high"]  # 今日最高价
-        yest_high = yest_row["high"]  # 昨日最高价
-
-        condition4 = tod_high < yest_high  # 今日最高价小于昨日最高价
-
-        if condition1 and condition2 and condition3 and condition4:
+        # 条件2
+        condition2_1 = (abs(bol_upper - today_close) / today_close) > 0.1
+        condition2_2 = Mix.check_golden_cross_condition(df)
+        condition2 = (condition2_1 and condition2_2)
+        
+        if condition1 or condition2:
             return stock_code
 
     @staticmethod
