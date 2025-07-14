@@ -519,15 +519,8 @@ class Mix:
 
         day_MACD_data = MACD.calculate_macd(data)
 
-        # 查看DIF刚刚>0   (条件1)
-        condition1 = (
-            day_MACD_data["DIF"].iloc[-1] > 0 and day_MACD_data["DIF"].iloc[-2] < 0
-        )
-
-        # 零线上金叉   (条件2)
-        condition2 = (
-            day_MACD_data["MACD_Golden"].iloc[-1] and day_MACD_data["DIF"].iloc[-1] > 0
-        )
+        # 查看DIF>0   (条件1)
+        condition1 = day_MACD_data["DIF"].iloc[-1] > 0 
 
         # 今日不能碰上轨   (条件3)
         df = Bol.calculate_bollinger_bands(data)
@@ -540,7 +533,7 @@ class Mix:
         # 今日碰上轨
         condition3 = (last_touch_date == current_date) and last_touch_type == "上轨"
 
-        if (condition1 or condition2) and (not condition3):
+        if (condition1) and (not condition3):
             return stock_code
 
     @staticmethod
@@ -656,6 +649,11 @@ class Mix:
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
 
+        day_MACD_data = MACD.calculate_macd(df)
+
+        # 查看DIF>0   (条件new)
+        condition_new = day_MACD_data["DIF"].iloc[-1] > 0 
+
         tod_row = df.iloc[-1]  # 今日数据
         tod_type = Mix.get_k_line_type(tod_row)
 
@@ -680,7 +678,7 @@ class Mix:
         condition2_2 = Mix.check_golden_cross_condition(df)
         condition2 = (condition2_1 and condition2_2)
         
-        if condition1 or condition2:
+        if (condition1 or condition2) and condition_new:
             return stock_code
 
     @staticmethod
@@ -829,23 +827,23 @@ class Bol:
                     return stock_code
 
     @staticmethod
-    def get_mid_up(stock_code: str) -> bool:
+    def get_mid_up(stock_code: str):
         """找出中线向上的股票"""
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
+        month_df = Reshape_data.get_month_df(df)
 
         # 预处理数据
-        df = Bol.calculate_bollinger_bands(df)
+        month_bol_df = Bol.calculate_bollinger_bands(month_df)
 
         # 中线向上
-        condition1 = df["BOLL_MID"].iloc[-2] <= df["BOLL_MID"].iloc[-1]
+        condition1 = month_bol_df["BOLL_MID"].iloc[-2] <= month_bol_df["BOLL_MID"].iloc[-1]
 
-        del df
+        del df, month_bol_df
         gc.collect()
 
         if condition1:
-            return True
-        return False
+            return stock_code
 
     @staticmethod
     def get_month_mid_up(stock_code: str):
@@ -1029,7 +1027,11 @@ class Nine:
         condition1 = get_4_condition(stock_code)
 
         # 中轨向上 == 今日中轨大于昨日
-        condition2 = Bol.get_mid_up(stock_code)
+        res_code = Bol.get_mid_up(stock_code)
+        if res_code:
+            condition2 = True
+        else:
+            condition2 = False
 
         # 昨日最高价 > 今日最高价
         condition3 = df["high"].iloc[-2] > df["high"].iloc[-1]
