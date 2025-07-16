@@ -337,8 +337,11 @@ class KDJ:
         # condition1 = (-df["K"].iloc[-2] + df["D"].iloc[-2]) - (
         #     -df["K"].iloc[-1] + df["D"].iloc[-1]
         # ) > 3  # 昨日KD差值大于今日
+
         # condition2 = df["K"].iloc[-1] < df["D"].iloc[-1]  # 今日K < D
+
         # condition3 = (df["D"].iloc[-1] - df["J"].iloc[-1]) < 12  # 今日D J 差值
+
         # condition4 = (df["J"].iloc[-1] - df["J"].iloc[-2]) > 15  # 今昨 J 差值
 
         # condition5 = (df["MACD_hist"].iloc[-1] > 0) and (
@@ -350,11 +353,23 @@ class KDJ:
         """
         1. (今日收盘价 - 中轨) / 收盘价 < 4% or (今日收盘价 - 下轨) / 收盘价 < 4%
 
+        abs((今日最低价 - 中轨) / (上轨 - 中轨)) < 12%
+
+            + abs((max(开盘价,收盘价) - 上轨) / (上轨 - 中轨)) > 50%
+
+            or
+
+            abs((今日最低价 - 下轨) / (中轨 - 下轨)) <12%
+
+            + abs((max(开盘价,收盘价) - 中轨) / (中轨 - 下轨)) > 50%
+
         2. J今日- J昨日 > 0 + 第一次
 
         3. 周bol 中轨 本周 >= 上周
 
-        4. DIF > 0 + MACD > 0
+        4. DIF > 0
+
+        5. 最高价 < 上轨
         """
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
@@ -365,16 +380,37 @@ class KDJ:
         df = KDJ.calculate_kdj(df)
         df = MACD.calculate_macd(df)
 
-        today_close = df["close"].iloc[-1]
-        today_mid = bol_df["BOLL_MID"].iloc[-1]
-        today_low = bol_df["BOLL_LOWER"].iloc[-1]
+        today_open = df["open"].iloc[-1]  # 开
+        today_close = df["close"].iloc[-1]  # 收
+        today_low = df["low"].iloc[-1]  # 低
+        today_high = df["high"].iloc[-1]  # 高
+        today_upper = bol_df["BOLL_UPPER"].iloc[-1]  # 下轨
+        today_mid = bol_df["BOLL_MID"].iloc[-1]  # 中轨
+        today_lower = bol_df["BOLL_LOWER"].iloc[-1]  # 下轨
 
-        # (今日收盘价 - 中轨) / 收盘价 < 4% or (今日收盘价 - 下轨) / 收盘价 < 4%
-        condition1 = ((abs(today_close - today_mid) / today_close) < 0.04) or (
-            (abs(today_close - today_low) / today_close) < 0.04
+        # abs((今日最低价 - 中轨) / (上轨 - 中轨)) < 12%
+        # + abs((max(开盘价,收盘价) - 上轨) / (上轨 - 中轨)) > 50%
+        # or
+        # abs((今日最低价 - 下轨) / (中轨 - 下轨)) <12%
+        # + abs((max(开盘价,收盘价) - 中轨) / (中轨 - 下轨)) > 50%
+        condition1_1 = (
+            abs((today_low - today_mid) / (today_upper - today_mid)) < 0.12
+        ) and (
+            abs(
+                (max(today_open, today_close) - today_upper) / (today_upper - today_mid)
+            )
+            > 0.5
+        )
+        condition1_2 = (
+            abs((today_low - today_lower) / (today_mid - today_lower)) < 0.12
+        ) and (
+            abs((max(today_open, today_close) - today_mid) / (today_mid - today_lower))
+            > 0.5
         )
 
-        # J今日 > J昨日  + 第一次
+        condition1 = condition1_1 or condition1_2
+
+        # J今日 > J昨日  + 第一次 == min(J今日, J昨日, J前天) = J昨日
         condition2 = (df["J"].iloc[-1] > df["J"].iloc[-2]) and (
             df["J"].iloc[-3] > df["J"].iloc[-2]
         )
@@ -383,12 +419,18 @@ class KDJ:
         week_bol_df = Bol.calculate_bollinger_bands(week_df)
         condition3 = round(week_bol_df["BOLL_MID"].iloc[-1], 3) >= round(
             week_bol_df["BOLL_MID"].iloc[-2], 3
-        )# 近似到小数点后三位
+        )  # 近似到小数点后三位
 
-        # 今日DIF > 0 + MACD > 0
-        condition4 = (df["MACD_hist"].iloc[-1] > 0) and (df["DIF"].iloc[-1] > 0)
-        
-        if condition1 and condition2 and condition3 and condition4:
+        # 今日DIF > 0
+        condition4 = df["DIF"].iloc[-1] > 0
+
+        # 最高价 < 上轨
+        condition5 = today_high < today_upper
+
+        del df, week_df, week_bol_df, bol_df
+        gc.collect()
+
+        if condition1 and condition2 and condition3 and condition4 and condition5:
             return stock_code
 
     @staticmethod
@@ -520,7 +562,7 @@ class Mix:
         day_MACD_data = MACD.calculate_macd(data)
 
         # 查看DIF>0   (条件1)
-        condition1 = day_MACD_data["DIF"].iloc[-1] > 0 
+        condition1 = day_MACD_data["DIF"].iloc[-1] > 0
 
         # 今日不能碰上轨   (条件3)
         df = Bol.calculate_bollinger_bands(data)
@@ -642,43 +684,72 @@ class Mix:
         # if condition1 and condition2 and condition3 and condition4:
         #     return stock_code
         """
-        今日是阴线 + abs(最低价 - 中轨) / 收盘价 < 3% or abs(最低价 -下轨) / 收盘价 < 3%
-        abs(上轨 - 收盘价) / 收盘价 > 10%  + 周kdj金叉2周内
-        两者符合其一
+        1. abs((今日最低价 - 中轨) / (上轨 - 中轨)) < 12%
+
+        + abs((max(开盘价,收盘价) - 上轨) / (上轨 - 中轨)) > 50%
+
+        or
+
+        abs((今日最低价 - 下轨) / (中轨 - 下轨)) <12%
+
+        + abs((max(开盘价,收盘价) - 中轨) / (中轨 - 下轨)) > 50%
+
+        2. 去哪儿了？
+
+        3. 周kdj金叉2周内
+
+        4. DIF > 0
+
+        condition1 and condition3 and condition4
         """
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
 
         day_MACD_data = MACD.calculate_macd(df)
-
-        # 查看DIF>0   (条件new)
-        condition_new = day_MACD_data["DIF"].iloc[-1] > 0 
+        bol_df = Bol.calculate_bollinger_bands(df)
 
         tod_row = df.iloc[-1]  # 今日数据
         tod_type = Mix.get_k_line_type(tod_row)
 
-        today_low = df["low"].iloc[-1]
-        today_close = df["close"].iloc[-1]
-        bol_df = Bol.calculate_bollinger_bands(df)
-        bol_upper = round(bol_df["BOLL_UPPER"].iloc[-1], 3)
-        bol_mid = round(bol_df["BOLL_MID"].iloc[-1],3)
-        bol_low = round(bol_df["BOLL_LOWER"].iloc[-1], 3)
+        today_open = df["open"].iloc[-1]  # 开
+        today_close = df["close"].iloc[-1]  # 收
+        today_low = df["low"].iloc[-1]  # 低
+        today_upper = bol_df["BOLL_UPPER"].iloc[-1]  # 下轨
+        today_mid = bol_df["BOLL_MID"].iloc[-1]  # 中轨
+        today_lower = bol_df["BOLL_LOWER"].iloc[-1]  # 下轨
 
-        # 条件1
-        condition1_1 = (tod_type == "阴线")
-
-        condition1_2 = (abs(today_low - bol_mid) / today_close < 0.03) or (
-            abs(today_low - bol_low) / today_close < 0.03
+        # abs((今日最低价 - 中轨) / (上轨 - 中轨)) < 12%
+        # + abs((max(开盘价,收盘价) - 上轨) / (上轨 - 中轨)) > 50%
+        # or
+        # abs((今日最低价 - 下轨) / (中轨 - 下轨)) <12%
+        # + abs((max(开盘价,收盘价) - 中轨) / (中轨 - 下轨)) > 50%
+        condition1_1 = (
+            abs((today_low - today_mid) / (today_upper - today_mid)) < 0.12
+        ) and (
+            abs(
+                (max(today_open, today_close) - today_upper) / (today_upper - today_mid)
+            )
+            > 0.5
+        )
+        condition1_2 = (
+            abs((today_low - today_lower) / (today_mid - today_lower)) < 0.12
+        ) and (
+            abs((max(today_open, today_close) - today_mid) / (today_mid - today_lower))
+            > 0.5
         )
 
-        condition1 = (condition1_1 and condition1_2)
+        condition1 = condition1_1 or condition1_2
 
-        # 条件2
-        condition2_1 = (abs(bol_upper - today_close) / today_close) > 0.1
-        condition2_2 = Mix.check_golden_cross_condition(df)
-        condition2 = (condition2_1 and condition2_2)
-        
-        if (condition1 or condition2) and condition_new:
+        # # 条件2
+        # condition2 = (abs(today_upper - today_close) / today_close) > 0.06
+
+        # 条件3
+        condition3 = Mix.check_golden_cross_condition(df)
+        # condition2 = (condition2_1 and condition2_2)
+
+        # 条件4
+        condition4 = day_MACD_data["DIF"].iloc[-1] > 0
+        if (condition1) and condition3 and condition4:
             return stock_code
 
     @staticmethod
@@ -837,7 +908,9 @@ class Bol:
         month_bol_df = Bol.calculate_bollinger_bands(month_df)
 
         # 中线向上
-        condition1 = month_bol_df["BOLL_MID"].iloc[-2] <= month_bol_df["BOLL_MID"].iloc[-1]
+        condition1 = (
+            month_bol_df["BOLL_MID"].iloc[-2] <= month_bol_df["BOLL_MID"].iloc[-1]
+        )
 
         del df, month_bol_df
         gc.collect()
@@ -990,13 +1063,13 @@ class Nine:
                     return [stock_code, dec_date]
 
     @staticmethod
-    def get_today(stock_code:str):
+    def get_today(stock_code: str):
         data = GLOBAL_STOCK_DATA
         df = pd.DataFrame(data[stock_code])
         week_df = Reshape_data.get_week_df(df)
         month_df = Reshape_data.get_month_df(df)
 
-        def get_4_condition(stock_code:str):
+        def get_4_condition(stock_code: str):
             """
             1 周KDJ 不死叉
             2 周macd dif > 0
@@ -1111,7 +1184,11 @@ class Pioneer:
         condition1 = (week_3_low > week_2_low) and (week_2_low > week_1_low)
 
         # 连续三周最高价下降 + 上周最高价大于周一最高价
-        condition2 = (week_3_high > week_2_high) and (week_2_high > week_1_high) and (week_1_high > cur_week_high)
+        condition2 = (
+            (week_3_high > week_2_high)
+            and (week_2_high > week_1_high)
+            and (week_1_high > cur_week_high)
+        )
 
         # 连续三周成交量下降
         condition3 = (week_3_vol > week_2_vol) and (week_2_vol > week_1_vol)
